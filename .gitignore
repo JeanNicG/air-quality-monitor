@@ -1,0 +1,15 @@
+# WiFi credentials
+esp32/config.h
+
+esp32/.pio
+esp32/.vscode/.browse.c_cpp.db*
+esp32/.vscode/c_cpp_properties.json
+esp32/.vscode/launch.json
+esp32/.vscode/ipch
+esp32/src/config.h
+
+arduinoProMini/.pio
+arduinoProMini/.vscode/.browse.c_cpp.db*
+arduinoProMini/.vscode/c_cpp_properties.json
+arduinoProMini/.vscode/launch.json
+arduinoProMini/.vscode/ipch
