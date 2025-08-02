@@ -57,11 +57,21 @@ int yAxisValues[4] = {};
 int maxV = 0;
 int8_t r = 99;
 
+void checkForIncomingData();
+void storeData();
+void getLast24Hours();
+void getYAxisValues();
+void sendDataToWaveform();
+void calibrateMQ131Sensor();
+
 void setup() {
   Serial.begin(9600);
   // Device to serial monitor feedback
   pinMode(6, OUTPUT);
   pinMode(tvocPin, OUTPUT);
+
+  //uncomment this 
+  //calibrateMQ131Sensor();
 
   // Warming up sensors
   digitalWrite(6, HIGH);        // Ozone sensor
@@ -75,10 +85,10 @@ void setup() {
   co2Serial.begin(9600);
   pmsSerial.begin(9600);
   myMHZ19.begin(co2Serial);
-  myMHZ19.autoCalibration(false);  // Turn auto calibration ON (OFF autoCalibration(false))
+  myMHZ19.autoCalibration(true);  // Turn auto calibration ON (OFF autoCalibration(false))
   MQ131.begin(6, A0, LOW_CONCENTRATION, 1000000); //
-  MQ131.setTimeToRead(20); // Set how many seconds we will read from the Ozone sensor. It blocks flow
-  MQ131.setR0(9000); // We get this value using the calirabrate() function from the Library calibration example
+  MQ131.setTimeToRead(164); // Set how many seconds we will read from the Ozone sensor. It blocks flow
+  MQ131.setR0(153153.18); // We get this value using the calirabrate() function from the Library calibration example
 }
 
 void loop() {
@@ -535,4 +545,32 @@ void sendDataToWaveform() {
     }
     k++;
   }
+}
+
+void calibrateMQ131Sensor() {
+  Serial.println("Calibrating MQ131 sensor...");
+  Serial.println("This will take several minutes. Please ensure sensor is in clean air at ~20°C and ~65% humidity");
+  
+  // Initialize sensor with serial debugging
+  MQ131.begin(6, A0, LOW_CONCENTRATION, 1000000, (Stream*)&Serial);
+  
+  // Launch calibration
+  Serial.println("Calibration started...");
+  MQ131.calibrate();
+  
+  // Get calibration values
+  float r0 = MQ131.getR0();
+  int timeToRead = MQ131.getTimeToRead();
+  
+  Serial.print("R0 = ");
+  Serial.print(r0);
+  Serial.println(" Ohms");
+  Serial.print("Time to read = ");
+  Serial.print(timeToRead);
+  Serial.println(" s");
+  
+  // Store these values for future use
+  // You can later use these values directly in setup() with:
+  // MQ131.setR0(r0);
+  // MQ131.setTimeToRead(timeToRead);
 }

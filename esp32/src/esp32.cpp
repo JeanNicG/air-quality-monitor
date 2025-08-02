@@ -201,12 +201,12 @@ void handleData() {
   doc["temp"] = sensorData.temp;
   doc["hum"] = sensorData.hum;
   doc["tvoc"] = sensorData.tvoc;
-  doc["lastUpdate"] = millis();
+  doc["lastUpdate"] = ((millis() - sensorData.lastUpdate) / 1000);
 
   String jsonString;
   serializeJson(doc, jsonString);
   int httpResponseCode = 200;
-  Serial.print("sedning JSON data: ");
+  Serial.print("sending JSON data: ");
   Serial.println(jsonString);
   server.send(httpResponseCode, "application/json", jsonString);
 }
