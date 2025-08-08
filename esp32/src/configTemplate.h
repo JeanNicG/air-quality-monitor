@@ -1,9 +1,9 @@
 // config.example.h - Template for WiFi credentials
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef CONFIGT_H
+#define CONFIGT_H
 
 // WiFi credentials - Update these values
-const char* WIFI_SSID = "YOUR_WIFI_NAME";
-const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
+const char* WIFI_SSID_T = "YOUR_WIFI_NAME";
+const char* WIFI_PASSWORD_T = "YOUR_WIFI_PASSWORD";
 
 #endif

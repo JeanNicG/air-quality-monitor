@@ -1,18 +1,11 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <WebServer.h>
-#include <SPIFFS.h>
 #include <ArduinoJson.h>
 #include "config.h"
 
 // Web server on port 80
 WebServer server(80);
-
-// Function declarations
-void readArduinoData();
-void parseArduinoData(String data);
-void handleData();
-void setupWebPage();
 
 // Sensor data structure
 struct SensorData {
@@ -32,16 +25,12 @@ HardwareSerial ArduinoSerial(2);
 String serialBuffer = "";
 unsigned long lastSerialCheck = 0;
 
+// Function declarations
+void readArduinoData();
+void parseArduinoData(String data);
+void handleData();
+
 void setup() {
-  // Initialize SPIFFS
-  if (!SPIFFS.begin(true)) {
-    Serial.println("SPIFFS Mount Failed");
-    return;
-  }
-
-  // sync with NTP for timekeeping
-  configTime(0, 0, "pool.ntp.org");
-
   // Init Serial for PlatformIO Serial Monitor
   Serial.begin(115200);
   delay(1000);
@@ -60,9 +49,8 @@ void setup() {
   }
   Serial.println(WiFi.localIP());
 
-  setupWebPage();
-  server.on("/data", handleData);
-  
+  // Setup Web Server
+  server.on("/data", HTTP_GET, handleData);
   server.begin();
   Serial.println("Web Server Started");
 }
@@ -83,28 +71,6 @@ void loop() {
   }
 }
 
-void setupWebPage(){
-    server.on("/", HTTP_GET, [](){
-    File file = SPIFFS.open("/index.html", "r");
-    if(file){
-      server.streamFile(file, "text/html");
-      file.close();
-    } else {
-      server.send(404, "text/plain", "File not found");
-    }
-  });
-  
-  server.on("/style.css", HTTP_GET, [](){
-    File file = SPIFFS.open("/style.css", "r");
-    if(file){
-      server.streamFile(file, "text/css");
-      file.close();
-    } else {
-      server.send(404, "text/plain", "File not found");
-    }
-  });
-}
-
 void readArduinoData() {
   static int ffCount = 0;
   while (ArduinoSerial.available()) {
@@ -115,7 +81,7 @@ void readArduinoData() {
         if (serialBuffer.length() > 0) {
           Serial.print("Complete message received: '");
           Serial.print(serialBuffer);
-          Serial.println("'");
+          Serial.println("'"); 
           parseArduinoData(serialBuffer);
           serialBuffer = ""; // Clear buffer
         }
@@ -192,8 +158,9 @@ void parseArduinoData(String data) {
   }
 }
 
-// collects data from the sensor and sends it as JSON
+// Collects data from the sensor and sends it as JSON
 void handleData() {
+  // Prepare JSON
   JsonDocument doc;
   doc["co2"] = sensorData.co2;
   doc["pm25"] = sensorData.pm25;
@@ -201,12 +168,10 @@ void handleData() {
   doc["temp"] = sensorData.temp;
   doc["hum"] = sensorData.hum;
   doc["tvoc"] = sensorData.tvoc;
-  doc["lastUpdate"] = ((millis() - sensorData.lastUpdate) / 1000);
+  doc["lastUpdate"] = ((millis() - sensorData.lastUpdate) / 1000); // seconds ago
 
+  // Serialize and send JSON
   String jsonString;
   serializeJson(doc, jsonString);
-  int httpResponseCode = 200;
-  Serial.print("sending JSON data: ");
-  Serial.println(jsonString);
-  server.send(httpResponseCode, "application/json", jsonString);
+  server.send(200, "application/json", jsonString);
 }
